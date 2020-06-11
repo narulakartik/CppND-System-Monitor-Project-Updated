@@ -12,7 +12,7 @@ float Processor::Utilization() {
     std::vector<std::string> cpu_elements_string = LinuxParser::CpuUtilization();
     std::vector<float> cpu_elements_float(cpu_elements_string.size());
     std::transform(cpu_elements_string.begin(), cpu_elements_string.end(), cpu_elements_float.begin(), [](const std::string &str){
-        return std::stod(str);
+        return std::stof(str);
     });
 
     const float idle = IdleTime(cpu_elements_float);
