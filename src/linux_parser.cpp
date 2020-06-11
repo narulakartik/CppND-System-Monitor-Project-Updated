@@ -10,7 +10,20 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-// DONE: An example of how to read data from the filesystem
+
+
+long LinuxParser::UpTime(const int pid) { 
+  std::ifstream fileStream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  std::string line;
+  if (fileStream.is_open()) {
+    std::getline(fileStream, line);
+    std::istringstream lineStream(line);
+    std::vector<std::string> data{std::istream_iterator<string>{lineStream}, std::istream_iterator<string>{}};
+    return LinuxParser::UpTime() - std::stol(data[21])/sysconf(_SC_CLK_TCK);
+  }
+  return 0;
+}
+
 string LinuxParser::OperatingSystem() {
   string line;
   string key;
@@ -66,30 +79,7 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-float LinuxParser::MemoryUtilization() { 
-  std::ifstream fileStreamer(kProcDirectory + kMeminfoFilename);
-  std::istringstream sstream;
-  string line;
-  string key, value;
-  float memTotal = 0, memFree = 0;
-  if (fileStreamer.is_open()) {
-    while(std::getline(fileStreamer, line)){
-      
-      sstream.str(line);
-      sstream >> key >> value;
-      if (key == "MemTotal:") {
-      memTotal = std::stof(value);
-      }
-        else if (key == "MemFree:") {
-        memFree = std::stof(value);
-        }
-          
-    }
-    
-    return (memTotal-memFree)/memTotal;
-  }
-  return 0;
-}
+
 
 long LinuxParser::UpTime() { 
   std::ifstream stream(kProcDirectory + kUptimeFilename); 
@@ -160,6 +150,26 @@ string LinuxParser::Command(const int pid) {
   return string(); 
 }
 
+std::vector<long int> LinuxParser::Cpu(const int pid) {
+  std::vector<long int> processInfo = {};
+  std::ifstream fileStream(kProcDirectory + std::to_string(pid) + kStatFilename);
+  std::string line;
+  if (fileStream.is_open()) {
+    std::getline(fileStream, line);
+    std::istringstream lineStream(line);
+    const std::vector<std::string> data {std::istream_iterator<string>{lineStream}, std::istream_iterator<string>{}};
+    processInfo.push_back(std::stol(data[13]));
+    processInfo.push_back(std::stol(data[14]));
+    processInfo.push_back(std::stol(data[15]));
+    processInfo.push_back(std::stol(data[16]));
+    processInfo.push_back(std::stol(data[21]));
+    return processInfo;
+  }
+  return {};
+}
+
+
+
 string LinuxParser::Ram(const int pid) { 
   std::ifstream fileStream(kProcDirectory + std::to_string(pid) + kStatusFilename);
   std::string line;
@@ -209,32 +219,30 @@ string LinuxParser::User(const int pid) {
   return string();
 }
 
-long LinuxParser::UpTime(const int pid) { 
-  std::ifstream fileStream(kProcDirectory + std::to_string(pid) + kStatFilename);
-  std::string line;
-  if (fileStream.is_open()) {
-    std::getline(fileStream, line);
-    std::istringstream lineStream(line);
-    std::vector<std::string> data{std::istream_iterator<string>{lineStream}, std::istream_iterator<string>{}};
-    return LinuxParser::UpTime() - std::stol(data[21])/sysconf(_SC_CLK_TCK);
+float LinuxParser::MemoryUtilization() { 
+  std::ifstream fileStreamer(kProcDirectory + kMeminfoFilename);
+  std::istringstream sstream;
+  string line;
+  string key, value;
+  float memTotal = 0, memFree = 0;
+  if (fileStreamer.is_open()) {
+    while(std::getline(fileStreamer, line)){
+      
+      sstream.str(line);
+      sstream >> key >> value;
+      if (key == "MemTotal:") {
+      memTotal = std::stof(value);
+      }
+        else if (key == "MemFree:") {
+        memFree = std::stof(value);
+        }
+          
+    }
+    
+    return (memTotal-memFree)/memTotal;
   }
   return 0;
 }
 
-std::vector<long int> LinuxParser::Cpu(const int pid) {
-  std::vector<long int> processInfo = {};
-  std::ifstream fileStream(kProcDirectory + std::to_string(pid) + kStatFilename);
-  std::string line;
-  if (fileStream.is_open()) {
-    std::getline(fileStream, line);
-    std::istringstream lineStream(line);
-    const std::vector<std::string> data {std::istream_iterator<string>{lineStream}, std::istream_iterator<string>{}};
-    processInfo.push_back(std::stol(data[13]));
-    processInfo.push_back(std::stol(data[14]));
-    processInfo.push_back(std::stol(data[15]));
-    processInfo.push_back(std::stol(data[16]));
-    processInfo.push_back(std::stol(data[21]));
-    return processInfo;
-  }
-  return {};
-}
+
+
