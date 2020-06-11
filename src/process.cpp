@@ -20,18 +20,18 @@ int Process::Pid() { return pid_; }
 
 float Process::CpuUtilization() { 
     const std::vector<long int> processInfo = LinuxParser::Cpu(pid_);
-    long int total_time = processInfo[processInfoElem::utime_] + processInfo[processInfoElem::stime_];
-    total_time += processInfo[processInfoElem::cutime_] + processInfo[processInfoElem::cstime_];
-    const float seconds = (float) Process::UpTime();
-    const float cpuUsage = ((total_time / sysconf(_SC_CLK_TCK)) / seconds);
+    long int total_t;
+    float seconds, cpuUsage;
+    total_t= processInfo[processInfoElem::utime_] + processInfo[processInfoElem::stime_]+processInfo[processInfoElem::cutime_] + processInfo[processInfoElem::cstime_];
+    seconds = (float) Process::UpTime();
+    cpuUsage = ((total_t / sysconf(_SC_CLK_TCK)) / seconds);
     return cpuUsage; 
 }
 
 
 string Process::Command() { 
-    if (command_.length() == 0)
-        command_ = LinuxParser::Command(pid_);
-    return command_; 
+   
+    return LinuxParser::Command(pid_); 
 }
 
 
@@ -41,9 +41,8 @@ string Process::Ram() {
 
 
 string Process::User() { 
-    if (user_.length() == 0)
-        user_ = LinuxParser::User(pid_);
-    return user_; 
+   
+    return LinuxParser::User(pid_); 
 }
 
 
